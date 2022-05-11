@@ -42,31 +42,44 @@ def parse_feature_collection(features, geojson_filename):
     """
     csv_file_path = os.path.join(dir_path, 'csv', geojson_filename + '.csv')
 
+    # Sometimes some features have more or less properties than others, this causes issues for csv files
+    # therefore we only use property fields that are in *all* features
+    headers_in_all_features = []
+    for count, feature in enumerate(features):
+        if count == 0:
+            headers_in_all_features = list(feature['properties'].keys())
+        else:
+            s1 = set(list(feature['properties'].keys()))
+            s2 = set(headers_in_all_features)
+            headers_in_all_features = list(s1.intersection(s2))
+
+
     with open(csv_file_path, 'w', newline="") as f:
         csvwriter = csv.writer(f, delimiter=',', lineterminator='\r\n', quotechar = '"')
 
         header = []
         for count, feature in enumerate(features):
             if count == 0:
-                header = list(feature['properties'].keys())
+                header = headers_in_all_features
                 header.extend(['geometry'])
                 csvwriter.writerow(header)
                 count += 1
-            csvwriter.writerow(feature_to_row(feature, feature['properties'].keys()))
+            csvwriter.writerow(feature_to_row(feature, feature['properties'].keys(), headers_in_all_features))
         f.close()
 
-def feature_to_row(feature, header):
+def feature_to_row(feature, header, headers_in_all_features):
     """
     Makes a list of values and the geometry string for each feature
     :param feature: <dict> The feature in the feature collection
-    :param header: <list> the featrure header
+    :param header: <list> the feature header
     :return row_list: <list> a list of the feature properties and the geometry as a string
     """
     row_list = []
     geometry_string = ""
 
     for h in header:
-        row_list.append(feature['properties'][h])
+        if h in headers_in_all_features:
+            row_list.append(feature['properties'][h])
     if feature['geometry']['type'] not in ['Point', 'Polygon', 'MultiPolygon']:
         raise RuntimeError("Expecting point, polygon or multipolygon type, but got ", feature['geometry']['type'])
 
