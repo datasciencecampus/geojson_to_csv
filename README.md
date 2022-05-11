@@ -13,5 +13,5 @@ Once uploaded, you can then convert the GeoJSON field to GEOGRAPHY using:
 ```
 select *,
 ST_GEOGFROMGEOJSON(geometry, make_valid => TRUE)
-from `kpi.uk_regions`
+from `data.table`
 ```
