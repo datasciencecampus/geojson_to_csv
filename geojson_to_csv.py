@@ -49,9 +49,10 @@ def parse_feature_collection(features, geojson_filename):
         if count == 0:
             headers_in_all_features = list(feature['properties'].keys())
         else:
-            s1 = set(list(feature['properties'].keys()))
+            list1 = list(feature['properties'].keys())
+            s1 = set(list1)
             s2 = set(headers_in_all_features)
-            headers_in_all_features = list(s1.intersection(s2))
+            headers_in_all_features = sorted(list(s1.intersection(s2)), key=list1.index)
 
 
     with open(csv_file_path, 'w', newline="") as f:
